@@ -1,0 +1,444 @@
+---
+title: "MATH5090M Coursework"
+author: "Athang Ghag (201712928)"
+date: "30/04/2023"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+```{r, include=FALSE}
+library(lme4)
+library(dplyr)
+library(resample)
+load("CWsample.RData")
+```
+<!-- # ```{r, include=FALSE} -->
+<!-- # options(tinytex.verbose = TRUE) -->
+<!-- # ``` -->
+
+
+### Introduction
+
+The information and analysis in this report is based on a dataset of cancer patients. In this report, we analyze the age at which cancer patients die and the various factors affecting it. We explore the relationship between age at which the cancer was diagnosed and the age at death of patients. We also design a new public health intervention, which aims to improve care for cancer patients.
+
+### Methodology and Analysis
+
+The given dataset of cancer patients has 210 rows and 18 columns. There are 210 patients and 18 features with information about each patient. There are no missing values in the dataset. The features contain information such as age at which the patient was diagnosed (`AgeDiagnosis`) and age at which the patient died (`AgeDeath`) which are given in years in numeric format. There is an unique identity number associated with each patient in the `IDnumber` column and similarly a site identity number (`SiteID`) for hospitals where the patient is taking treatment.
+
+The data has categorical binary variables such as Sex, Race, Employment Status, Social Grade Status to give information about patient's demographics. Moreover, the binary variable `HighQualityOfLife` shows whether the patient is leading a high quality life or not.
+
+The categorical variable `Type` shows the type of cancer the patients is diagnosed with such as Kidney cancer, Thyroid cancer, Leukemia, Bowel, Brain, and more. The binary variable `Metastases` indicates if the cancer is metastasized or not, `Stage3or4` indicates if the cancer has progressed to the third stage, `MultiSite` variable indicates if the cancer has spread to multiple sites, and similarly `Remission` variable shows if the cancer is in remission or not. The categorical variable `Treatment` shows the type of treatment the patients is undergoing which include Chemotherapy, Radiotherapy, Immunotherapy, and No Treatment.
+
+The patients are taking treatment at different hospitals. We group by the `SiteID` to calculate number of patients at each hospital.
+
+```{r tidy=T, echo=FALSE}
+
+knitr::kable(
+  CWsample %>%
+  group_by(SiteID) %>%
+  summarise(c = n()),
+  col.names = c("SiteID","Number of Patients"),  align = "c", label='Table 1',caption = 'Table 1- Number of Patients in each site')
+
+```
+
+There are 12 sites in total. Site 20 has the highest number of patients which is 37 and Site 19 has the lowest number of patients.
+
+We now analyze our target variable `AgeDeath` and covariate `AgeDiagnosis`. We plot the histograms of these two variables to explore their behaviour.
+
+```{r yhist, tidy=FALSE, echo = F, fig.cap="Fig 1- Histograms of Patient's Age at Diagnosis and Patients Age at Death.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+op=par( mfrow= c(2,1))
+hist(CWsample$AgeDiagnosis, xlab= 'Patient Age at Diagnosis (in years)',
+     main= "Histograms of Patient's Age at Diagnosis", xlim=c(30,80))
+abline(v=mean(CWsample$AgeDiagnosis), col="red3",lwd=2)
+
+
+
+hist(CWsample$AgeDeath, xlab= 'Patient Age at Death (in years)',
+     main= "Histograms of Patient's Age at Death", xlim=c(30,80))
+abline(v=mean(CWsample$AgeDeath), col="red3",lwd=2)
+
+
+par(op)
+```
+
+We observe that, the histogram of patient's age at diagnosis is slightly right-skewed. The most frequent diagnosis age falls between the ages of 35 to 50 years with the mean age being around 45 years. The frequency of age at diagnosis above 60 years is low indicating that unfortunately many people die before they are diagnosed. The red vertical lines in the graphs show the mean of diagnosis and death ages.
+
+The histogram of patient's age at diagnosis is also slightly right-skewed but less prominent than the previous histogram. The majority of patients die between the ages of 45 to 60 years with the average age being around 54 years. In our data, patients with cancer don't survive above the age of 80 years. The average age at death is higher than age at diagnosis as we expect. It is hard to tell with certainity with histograms if these 2 variable follow normal distribution so we make use of QQ Plots to assess the normality of our data.
+
+```{r yqq,tidy=FALSE, echo = F, fig.cap="Fig 2- QQ Plots of Patient's Age at Diagnosis and Patients Age at Death.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+op=par( mfrow= c(2,1))
+qqnorm(CWsample$AgeDiagnosis,main= "QQ Plot of Patient's Age at Diagnosis")
+qqline(CWsample$AgeDiagnosis, col='red3')
+
+qqnorm(CWsample$AgeDeath,main= "QQ Plot of Patient's Age at Death")
+qqline(CWsample$AgeDeath, col='red3')
+
+par(op)
+```
+
+We observe that, for dianosis age plot the majority of points fall on the normal line but they just curve away at upper and lower ends. Similarly for death age plot, some points curve away from the normal line at upper and lower ends. However, these qq plots are close enough to a normal distribution qq plot. So, for practical purposes we can assume that both the variables follow normal distribution and perform statistical tests.
+
+After assuming a normal distribution for our target and dependent variable we implement a single-level regression model on them. We fit a single-level regression model using `lm()` function in R. The estimated parameters of the regression are as follows:
+
+```{r, echo=F,tidy=F}
+model1 <- lm(AgeDeath ~ AgeDiagnosis , data = CWsample)
+```
+```
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.3275 -3.2145 -0.1056  2.4383 13.3094 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  13.51652    2.06384   6.549 4.45e-10 ***
+AgeDiagnosis  0.90176    0.04539  19.866  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.632 on 208 degrees of freedom
+Multiple R-squared:  0.6549,	Adjusted R-squared:  0.6532 
+F-statistic: 394.7 on 1 and 208 DF,  p-value: < 2.2e-16
+```
+
+The p-value of our model is very close to zero so we fail to accept the null hypothesis which indicates that there is a significant relationship between age at death and age of diagnosis. The estimated intercept is 13.51 which indicates that on average there is a difference of about 13 years between age at death and age at diagnosis. The estimated slope is 0.9, a positive value but less than 1, which suggests that a diagnosis of cancer reduces the patient's expected lifespan by 10%. 
+
+```{r reg,tidy=FALSE, echo = F, fig.cap="Fig 3- A single-level regression model for Age at Death conditional on Age at Diagnosis.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+
+betahat <- model1$coeff
+e <- model1$resid
+op=par(mfrow= c(1,2))
+plot(AgeDeath ~ AgeDiagnosis , data = CWsample, ylab= 'Patient Age at Death (in years)',xlab= 'Patient Age at Diagnosis(in years)',
+     main= "Linear Regression Model")
+abline(betahat, col='red3')
+
+hist(e, main='Histogram of residual errors', xlab='Residual Error (e)')
+```
+
+The linear regression plot shows a positive relationship between age at diagnosis and age at death which is also indicated by the estimated R-squared value of 0.655. The majority of observations are between ages 40 to 55 years. The regression line seems to be a good fit for data considering majority of the data points are clustered near the line with the estimated residual error being ~5 years. The histogram of residual errors roughly follows a normal distribution with mean at zero so for practical purposes we can assume the errors are normally distributed.
+
+To further extend our analysis we will incorporate another covariate from our dataset to our single linear regression model to improve the performance of the model. We have explored the variables in our dataset at the start of this section. The variables in general tell us about the demographics of patients, the types of cancers and treatments, and various characteristics of the cancers.
+
+We choose the binary categorical variable `Metastasis` as the additional covariate for our linear regression model. We fit the model with `AgeDiagnosis` and `Metastasis` as our covriates and estimate the parameters. 
+
+```{r, echo=F,tidy=F}
+model2 <- lm(AgeDeath ~ AgeDiagnosis + Metastases , data = CWsample)
+```
+```
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.8408 -3.1953 -0.4716  2.4082 12.9116 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   13.19498    2.06157   6.400 1.02e-09 ***
+AgeDiagnosis   0.89459    0.04535  19.728  < 2e-16 ***
+MetastasesYes  1.13560    0.64446   1.762   0.0795 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.609 on 207 degrees of freedom
+Multiple R-squared:   0.66,	Adjusted R-squared:  0.6567 
+F-statistic: 200.9 on 2 and 207 DF,  p-value: < 2.2e-16
+```
+
+We observe that, the p-value for the `AgeDiagnosis` is still close to zero like our previous regression model. The p-value for our additional covariate is 0.0795 which is significant at 10% level. So, we can reject the null hypothesis at 10% significance level and say that the metastases of the cancer has impact on the patient's age at the death. The estimated residual error is 4.609 which is slightly less than our previous model(4.632).
+
+The estimated intercept is 13.19 which is slightly less than the the previous model. The estimated slope is 0.9 for `AgeDiagnosis` and 1.13 for `Metastases`. The estimates slope for `Metastases` is greater than 1 which indicates that, on average, patients with metastases have an estimated mean age at death approximately 1.13 years higher than those without metastases. In real-world cases, we'd expect patients with metastasized cancer to have lower age at death. But, patients diagnosed with a cancer could die before the cancer had metastasized or the cancer is easier to diagnose once it has metastasized so we get people with higher age at diagnosis and subsequently higher age at death.
+```{r reg1,tidy=FALSE, echo = F, fig.cap="Fig 4- A regression model for Age at Death conditional on Age at Diagnosis and Metastases.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+
+betahat <- model2$coeff
+e <- model2$resid
+op=par(mfrow= c(1,2))
+colours <-c("blue", "red3")
+plot(AgeDeath ~ AgeDiagnosis, 
+     pch = as.character(Metastases), data = CWsample, main='Linear Regression with Metastasis (Y= YES)',
+      ylab= 'Patient Age at Death (in years)',xlab= 'Patient Age at Diagnosis(in years)')
+abline(a=betahat[1],b=betahat[2], col='red3')
+# legend(title = "metastases", x = "bottomright", col = colours, legend = unique(CWsample$Metastases), lty = 1, bg = "white")
+
+hist(e, main='Histogram of residual errors', xlab='Residual Error (e)')
+
+par(op)
+```
+
+The linear regression plot shows a positive relationship and a good fit for our data.The R-squared value is 0.66 which is slightly better than our previous model(0.655). The histogram of residual errors roughly follows a normal distribution with mean at zero.
+
+From the plot, we see that there is not much difference between patients with metastasized cancer and patients with not metastasized cancer. All the data points are close to each other along the regression line. The estimated coefficient of the metastasized covariate is also 1.13 (close to 1), so for patients with same age at diagnosis and different metastasis cancer state their age at death will only vary by an year.
+
+Overall, we see a slight improvement in our new model which included an additional covariate alongwith `AgeDiagnosis`.
+
+We know that, the patients are taking treatment in 12 different hospitals. To estimate the effect or the non-effect of hospitals on patient age at death we fit a random intercept model where we consider `AgeDiagnosis` to be the fixed effect and cluster the patients by hospitals by using `SiteID` as the random effect. We estimate the parameters of this random intercept model using the `lmer()` function in R. To make things easier, we have encoded our `SiteID` variable to range from 1 to 12.
+
+```
+Linear mixed model fit by maximum likelihood  ['lmerMod']
+Formula: AgeDeath ~ AgeDiagnosis + (1 | SiteID1)
+   Data: CWsample
+
+     AIC      BIC   logLik deviance df.resid 
+  1238.6   1251.9   -615.3   1230.6      206 
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-1.94751 -0.79853 -0.07794  0.55510  2.99798 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ SiteID1  (Intercept)  2.174   1.475   
+ Residual             19.353   4.399   
+Number of obs: 210, groups:  SiteID1, 12
+
+Fixed effects:
+             Estimate Std. Error t value
+(Intercept)  14.06641    2.02125   6.959
+AgeDiagnosis  0.89045    0.04355  20.446
+
+Correlation of Fixed Effects:
+            (Intr)
+AgeDiagnoss -0.964
+```
+**Fixed Effects:** The estimated intercept for the fixed part of our model i.e. `AgeDiagnosis` is 14.07, so it indicates that on average there is a difference of about 14 years between age at death and age at diagnosis. The slope or the coefficient of `AgeDiagnosis` is 0.89, so on average for each one-unit increase in `AgeDiagnosis`, the predicted mean age at death increases by approximately a year. The t-value is 20.45 which is greater than zero and hence statistically significant. So, `AgeDiagnosis` is a strong predictor of `AgeDeath`.
+
+**Random Effects:** The estimated variance between intercepts is 2.17 which isn't very high. It indicates that, the random intercepts are close to each other and don't vary much. The estimated residual variance is 19.35 indicating the variability in age at death within the sites. The higher value of residual variance suggests that there is more unexplained variability in age at death within the sites, which could be due to randomness or external factors.
+
+**Correlation of Fixed Effects:** The estimated correlation value is -0.964, which indicates a strong negative correlation between the intercept and `AgeDiagnosis`. This suggests that as the age at diagnosis increases, the intercept tends to decrease, and vice versa.
+
+We now calculate the "Intraclass Correlation Coefficient" (ICC) for our model.
+
+```
+ICC <- between_group_variance / (between_group_variance + residual_variance)
+```
+The estimated ICC value is 0.1. It indicates that approximately 10% of the total variance in the age at death can be explained by the differences between the groups or clusters in the data. A value of 0.1 suggests that there is still considerable variability in `AgeDeath` not explained by clustering of sites.
+```{r reg2,tidy=FALSE, echo = F, fig.cap="Fig 5- A radom intercept model for Age at Death conditional on Age at Diagnosis and clustered by sites.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+encode_ordinal <- function(x, order = unique(x)) {
+  x <- as.numeric(factor(x, levels = order, exclude = NULL))
+  x
+}
+CWsample[["SiteID1"]] <- encode_ordinal(CWsample[["SiteID"]])
+colours <- palette.colors(n = 12, palette = "Polychrome36", recycle = FALSE)
+
+model3 <- lmer(AgeDeath ~ AgeDiagnosis + (1| SiteID1) ,data = CWsample, REML = FALSE)
+
+
+beta0 <- model3@beta[1]
+beta1 <- model3@beta[2]
+
+randomeffects <- ranef(model3)
+#graphics.off()
+u <- randomeffects$SiteID$"(Intercept)"
+
+plot(AgeDeath ~ AgeDiagnosis, 
+     col = colours[1:12],  
+     pch = as.character(SiteID1), data = CWsample,ylab= 'Patient Age at Death (in years)',xlab= 'Patient Age at Diagnosis(in years)', main='Random Intercept Model')
+
+for(j in 1:12){ 
+  abline(a = beta0 + u[j], b = beta1, col = colours[j]) 
+}
+
+legend(title = "sites", x = "bottomright", col = colours, legend = unique(CWsample$SiteID1), lty = 1, bg = "white")
+
+```
+
+We observe that, the intercepts are close to each other as expected from the estimate of intercept variance. It is difficult to observe any other significant features from the plot because the random intercepts and the data points are all close to each other.
+
+The random intercept model makes the assumption that the residual errors and the random intercepts are normally distributed.It also makes the assumption of "Homoscedasticity" which says that the variability of the residuals is assumed to be constant across all levels. It also assumes a linear relationship between the dependent and independent variables. We plot the QQ Plots of residuals and random intercepts to test this assumption.
+```{r re3,tidy=FALSE, echo = F, fig.cap="Fig 6- QQ Plots to test the normality assumptions of the random intercept model.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+op=par( mfrow= c(1,2))
+e <- resid(model3)
+qqnorm(e,  main='QQ Plot of Residuals')
+qqline(e, col='red3')
+
+random_intercepts <- ranef(model3)$SiteID1[,1]
+
+qqnorm(random_intercepts,  main='QQ Plot of Random Intercepts')
+qqline(random_intercepts, col='red3')
+par(op)
+```
+
+We observe that, the qq plot of residuals curves away from the normal line on the either ends of the graph. The qq plot of random intercepts are very close to the normal line but don't fall on it. So, the residuals and random intercepts violate the assumption of normality. But, for practical purposes we assume the normality of these two as they closely mimic a normal distribution. 
+
+To test for homoscedasticity we plot the residuals against the fitted values.
+```{r re4,tidy=FALSE, echo = F, fig.cap="Fig 6- Test for Homoscedasticity.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+residuals <- residuals(model3)
+fitted_values <- fitted(model3)
+
+# Create a scatter plot of residuals vs. fitted values
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals",
+     main = "Homoscedasticity Test- Residuals vs. Fitted Values Plot")
+abline(h = 0, col = "red3") 
+```
+
+We observe that, the spread of the data points is relatively constant across different levels of the fitted values. So, our model doesn't violate the homoscedasticity assumption.
+
+One potential limitation of our model is the assumption of independence of observations within the sites, which may not always be the case in practice. There could be correlations present among the individuals within the same site.
+
+We now fit a random intercept model with an additional covariate `Metastases` alongwith `AgeDiagnosis` and estimate its parameters.
+```
+Linear mixed model fit by maximum likelihood  ['lmerMod']
+Formula: AgeDeath ~ AgeDiagnosis + Metastases + (1 | SiteID1)
+   Data: CWsample
+
+     AIC      BIC   logLik deviance df.resid 
+  1237.3   1254.1   -613.7   1227.3      205 
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-1.95812 -0.72872 -0.05577  0.57161  2.96306 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ SiteID1  (Intercept)  2.194   1.481   
+ Residual             19.041   4.364   
+Number of obs: 210, groups:  SiteID1, 12
+
+Fixed effects:
+              Estimate Std. Error t value
+(Intercept)    13.7670     2.0132   6.838
+AgeDiagnosis    0.8829     0.0434  20.344
+MetastasesYes   1.1152     0.6185   1.803
+
+Correlation of Fixed Effects:
+            (Intr) AgDgns
+AgeDiagnoss -0.948       
+MetastassYs -0.084 -0.095
+```
+
+**Correlation of Fixed Effects:** The estimated correlation value is -0.95, which indicates a strong negative correlation between the intercept and `AgeDiagnosis`. This suggests that as the age at diagnosis increases, the intercept tends to decrease, and vice versa. The estimated correlation between the intercept and `Metastases` is -0.084 and the correlation between `AgeDiagnosis` and `Metastases` is -0.095. These are small negative values very close to zero which indicates that there is no significant correlation present between the intercept and `Metastases`, and `AgeDiagnosis` and `Metastases`.
+
+```{r re575,tidy=FALSE, echo = F, fig.cap="Fig 7- Random Intercept Model with additional covariate.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+model4<- lmer(AgeDeath ~ AgeDiagnosis + Metastases+ (1| SiteID1) , data = CWsample, REML=F)
+
+
+beta0 <- model4@beta[1]
+beta1 <- model4@beta[2]
+
+randomeffects <- ranef(model4)
+#graphics.off()
+u <- randomeffects$SiteID$"(Intercept)"
+
+plot(AgeDeath ~ AgeDiagnosis, 
+     col = colours[1:12],  
+     pch = as.character(SiteID1), data = CWsample,ylab= 'Patient Age at Death (in years)',xlab= 'Patient Age at Diagnosis(in years)', main='Random Intercept Model')
+
+for(j in 1:12){ 
+  abline(a = beta0 + u[j], b = beta1, col = colours[j]) 
+}
+
+legend(title = "sites", x = "bottomright", col = colours, legend = unique(CWsample$SiteID1), lty = 1, bg = "white")
+```
+
+We observe that using the estimated values and the plots, this affect of adding an additional covariate doesn't vary much sites.
+
+We plot the QQ Plots of residuals and random intercepts to test this assumption.
+```{r re9,tidy=FALSE, echo = F, fig.cap="Fig 8- QQ Plots to test the normality assumptions of the random intercept model.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+op=par( mfrow= c(1,2))
+e <- resid(model4)
+qqnorm(e,  main='QQ Plot of Residuals')
+qqline(e, col='red3')
+
+random_intercepts <- ranef(model4)$SiteID1[,1]
+
+qqnorm(random_intercepts,  main='QQ Plot of Random Intercepts')
+qqline(random_intercepts, col='red3')
+par(op)
+```
+
+We observe that, the qq plot of residuals curves away from the normal line on the either ends of the graph. The qq plot of random intercepts are very close to the normal line but don't fall on it. So, the residuals and random intercepts violate the assumption of normality.
+
+To test for homoscedasticity we plot the residuals against the fitted values.
+```{r re44,tidy=FALSE, echo = F, fig.cap="Fig 9- Test for Homoscedasticity.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+residuals <- residuals(model4)
+fitted_values <- fitted(model4)
+
+# Create a scatter plot of residuals vs. fitted values
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals",
+     main = "Homoscedasticity Test- Residuals vs. Fitted Values Plot")
+abline(h = 0, col = "red3") 
+```
+
+We observe that, the spread of the data points is relatively constant across different levels of the fitted values. So, our model doesn't violate the homoscedasticity assumption.
+
+To test whether this random intercept model with addition covariate is preferable than the single level linear regression model with additional covariate, we use the Chi-bar test. We obtain the chi-squared value of 7.3842 using `anova` in R and use this to calculate the p-value using the following formula in R.
+```
+p =  0.5 * (1 - pchisq(7.3842, df = 1))
+```
+The p-value is 0.0033 which is significant at 0.1% level. We can reject the null hypotheses at the 0.1% significance level, in favour of the hypothesis that the Random Intercept Model is correct or more preferable.
+
+
+### Conclusion
+
+We can conclude the age at diagnosis has a positive impact on the age at death. The metastatic state of cancer also has a positive effect on the age at the death. Using these two covariates in the linear regression model improve the performance of the task. The hospital at which the patient is taking the treatment doesn't affect the age at death at a significant level. The cluster by site and using the two covariates in the random intercept model is the preferable choice for this task. 
+This analysis didn't produce any real life impact as was expected.
+
+## Designing a Trial
+
+### Trial Design
+
+We propose trial that is a randomized controlled trial (RCT), to evaluate the effectiveness of interventions. The randomized allocation of participants to either the intervention or control group helps minimize selection bias and ensures comparability between groups.
+
+**Endpoint:** The primary endpoint of the trial is the age at death of cancer patients. This will be measured as a continuous variable, aiming to detect whether the intervention increases the expected age at death by two and a half years or more.
+
+**Parameters:** We will estimate the parameters required for the sample size using our dataset. These parameters include the mean age at death and its standard deviation in the control group, as well as the expected increase in age at death due to the intervention.
+
+The underlying model for analysis is a linear regression model, where the age at death is the dependent variable and the intervention group (0 for control, 1 for intervention) is the independent variable. This model assumes that the relationship between the intervention and age at death is linear, which might not always be the case. This model will assess whether there is a statistically significant difference in the age at death between the intervention and control groups.
+
+### Sample Size Requirements
+
+To calculate the sample size, we need to specify the type I error rate (α) and the type II error rate (β). For this analysis, we use the industry standard values of α = 0.025 (one-sided) and β = 0.2. Using these standard error rates, we calculate the sample size required to detect an effect size of two and a half years or more in the age at death between the intervention and control groups. We do these calculations in R.
+
+```
+alpha <- 0.025  # Type I error rate
+beta <- 0.2     # Type II error rate
+delta <- 2.5   
+sigma <- sd(CWsample$AgeDeath)
+
+
+# Calculate sample size
+n <- 2*sigma^2 * (qnorm(1 - alpha) - qnorm(beta))^2 / delta^2
+
+```
+
+The calculated sample size comes out to be 156 patients per arm.
+
+These sample size calculations assumes that the outcome variable follows a normal distribution, the outcome variable doesn't have high variability. As high variable outcome will require a very large sample size which is not always feasible. So it is assumes that the standard error of the estimated treatment effect is approximately same as the standard error of the dependent variable.
+
+### Sensitivity Analysis
+
+We now observe how the power of the trial varies according to the treatment effect and sample size.
+```{r re24,tidy=FALSE, echo = F, fig.cap="Fig 10- Power as a function of Treatment Effect.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+calc_pow <- function(n, delta, sd)
+{
+  # Get the critical value used in the test
+  crit <- qnorm(1 - 0.05/2, mean = 0, sd = 1)
+  # Calculate the power
+  1 - pnorm(crit - delta/sqrt(2*sd^2/n), mean = 0, sd = 1)
+  # Note - an R function will return the result of the last executed line
+}
+
+#calc_pow(n=9618, delta= -1:4, sd=sd(CWsample$AgeDeath))
+
+curve(calc_pow(n=1000, delta= x, sd=sd(CWsample$AgeDeath)), from= -1, to=4,
+      xlab='Treatment Effect',ylab= 'Power',col='Blue',panel.first = grid(NULL,NULL, lty = 1),
+      main=expression('Power as a function of Treatment Effect' ~(delta)))
+curve(calc_pow(n=100, delta= x, sd=sd(CWsample$AgeDeath)), from= -1, to=4,
+      xlab='Treatment Effect',ylab= 'Power',col='Red3', add=TRUE)
+#abline(v=2.5,lty='dotted')
+legend(title = "Sample Size(n)", x = "bottomright", col = c('Blue','Red3'), legend = c(1000,100), lty = 1, bg = "white")
+```
+
+We observe that we can't attain the required level of power with a very small size for our treatment effect. We observe that for a large sample size the power of trial saturates at 1 very quickly which is not desirable and for a smaller sample size the power doesn't reach 1.
+
+```{r re242,tidy=FALSE, echo = F, fig.cap="Fig 11- Power as a function of Sample Size.", fig.align = "center", message=FALSE, fig.width=12, fig.height=7}
+
+curve(calc_pow(n=x, delta= 2.5, sd=sd(CWsample$AgeDeath)), from= 100, to=1000,
+      xlab='Sample Size',ylab= 'Power',col='Blue',panel.first = grid(NULL,NULL, lty = 1),
+      main='Power as a function of Sample Size (n)')
+```
+
+\newpage
+![](C:\\Athang\\MSc DSA\\Mixed Models with Medical Applications\\aca integrity final f.pdf){width=1000px}

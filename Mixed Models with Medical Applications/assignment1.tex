@@ -1,0 +1,672 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={MATH5090M Coursework},
+  pdfauthor={Athang Ghag (201712928)},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{MATH5090M Coursework}
+\author{Athang Ghag (201712928)}
+\date{30/04/2023}
+
+\begin{document}
+\maketitle
+
+\hypertarget{introduction}{%
+\subsubsection{Introduction}\label{introduction}}
+
+The information and analysis in this report is based on a dataset of
+cancer patients. In this report, we analyze the age at which cancer
+patients die and the various factors affecting it. We explore the
+relationship between age at which the cancer was diagnosed and the age
+at death of patients. We also design a new public health intervention,
+which aims to improve care for cancer patients.
+
+\hypertarget{methodology-and-analysis}{%
+\subsubsection{Methodology and
+Analysis}\label{methodology-and-analysis}}
+
+The given dataset of cancer patients has 210 rows and 18 columns. There
+are 210 patients and 18 features with information about each patient.
+There are no missing values in the dataset. The features contain
+information such as age at which the patient was diagnosed
+(\texttt{AgeDiagnosis}) and age at which the patient died
+(\texttt{AgeDeath}) which are given in years in numeric format. There is
+an unique identity number associated with each patient in the
+\texttt{IDnumber} column and similarly a site identity number
+(\texttt{SiteID}) for hospitals where the patient is taking treatment.
+
+The data has categorical binary variables such as Sex, Race, Employment
+Status, Social Grade Status to give information about patient's
+demographics. Moreover, the binary variable \texttt{HighQualityOfLife}
+shows whether the patient is leading a high quality life or not.
+
+The categorical variable \texttt{Type} shows the type of cancer the
+patients is diagnosed with such as Kidney cancer, Thyroid cancer,
+Leukemia, Bowel, Brain, and more. The binary variable
+\texttt{Metastases} indicates if the cancer is metastasized or not,
+\texttt{Stage3or4} indicates if the cancer has progressed to the third
+stage, \texttt{MultiSite} variable indicates if the cancer has spread to
+multiple sites, and similarly \texttt{Remission} variable shows if the
+cancer is in remission or not. The categorical variable
+\texttt{Treatment} shows the type of treatment the patients is
+undergoing which include Chemotherapy, Radiotherapy, Immunotherapy, and
+No Treatment.
+
+The patients are taking treatment at different hospitals. We group by
+the \texttt{SiteID} to calculate number of patients at each hospital.
+
+\begin{longtable}[]{@{}cc@{}}
+\caption{Table 1- Number of Patients in each site}\tabularnewline
+\toprule\noalign{}
+SiteID & Number of Patients \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+SiteID & Number of Patients \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & 8 \\
+5 & 12 \\
+6 & 14 \\
+11 & 25 \\
+13 & 14 \\
+16 & 19 \\
+17 & 33 \\
+19 & 6 \\
+20 & 37 \\
+21 & 15 \\
+22 & 13 \\
+25 & 14 \\
+\end{longtable}
+
+There are 12 sites in total. Site 20 has the highest number of patients
+which is 37 and Site 19 has the lowest number of patients.
+
+We now analyze our target variable \texttt{AgeDeath} and covariate
+\texttt{AgeDiagnosis}. We plot the histograms of these two variables to
+explore their behaviour.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/yhist-1} 
+
+}
+
+\caption{Fig 1- Histograms of Patient's Age at Diagnosis and Patients Age at Death.}\label{fig:yhist}
+\end{figure}
+
+We observe that, the histogram of patient's age at diagnosis is slightly
+right-skewed. The most frequent diagnosis age falls between the ages of
+35 to 50 years with the mean age being around 45 years. The frequency of
+age at diagnosis above 60 years is low indicating that unfortunately
+many people die before they are diagnosed. The red vertical lines in the
+graphs show the mean of diagnosis and death ages.
+
+The histogram of patient's age at diagnosis is also slightly
+right-skewed but less prominent than the previous histogram. The
+majority of patients die between the ages of 45 to 60 years with the
+average age being around 54 years. In our data, patients with cancer
+don't survive above the age of 80 years. The average age at death is
+higher than age at diagnosis as we expect. It is hard to tell with
+certainity with histograms if these 2 variable follow normal
+distribution so we make use of QQ Plots to assess the normality of our
+data.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/yqq-1} 
+
+}
+
+\caption{Fig 2- QQ Plots of Patient's Age at Diagnosis and Patients Age at Death.}\label{fig:yqq}
+\end{figure}
+
+We observe that, for dianosis age plot the majority of points fall on
+the normal line but they just curve away at upper and lower ends.
+Similarly for death age plot, some points curve away from the normal
+line at upper and lower ends. However, these qq plots are close enough
+to a normal distribution qq plot. So, for practical purposes we can
+assume that both the variables follow normal distribution and perform
+statistical tests.
+
+After assuming a normal distribution for our target and dependent
+variable we implement a single-level regression model on them. We fit a
+single-level regression model using \texttt{lm()} function in R. The
+estimated parameters of the regression are as follows:
+
+\begin{verbatim}
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.3275 -3.2145 -0.1056  2.4383 13.3094 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  13.51652    2.06384   6.549 4.45e-10 ***
+AgeDiagnosis  0.90176    0.04539  19.866  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.632 on 208 degrees of freedom
+Multiple R-squared:  0.6549,    Adjusted R-squared:  0.6532 
+F-statistic: 394.7 on 1 and 208 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+The p-value of our model is very close to zero so we fail to accept the
+null hypothesis which indicates that there is a significant relationship
+between age at death and age of diagnosis. The estimated intercept is
+13.51 which indicates that on average there is a difference of about 13
+years between age at death and age at diagnosis. The estimated slope is
+0.9, a positive value but less than 1, which suggests that a diagnosis
+of cancer reduces the patient's expected lifespan by 10\%.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/reg-1} 
+
+}
+
+\caption{Fig 3- A single-level regression model for Age at Death conditional on Age at Diagnosis.}\label{fig:reg}
+\end{figure}
+
+The linear regression plot shows a positive relationship between age at
+diagnosis and age at death which is also indicated by the estimated
+R-squared value of 0.655. The majority of observations are between ages
+40 to 55 years. The regression line seems to be a good fit for data
+considering majority of the data points are clustered near the line with
+the estimated residual error being \textasciitilde5 years. The histogram
+of residual errors roughly follows a normal distribution with mean at
+zero so for practical purposes we can assume the errors are normally
+distributed.
+
+To further extend our analysis we will incorporate another covariate
+from our dataset to our single linear regression model to improve the
+performance of the model. We have explored the variables in our dataset
+at the start of this section. The variables in general tell us about the
+demographics of patients, the types of cancers and treatments, and
+various characteristics of the cancers.
+
+We choose the binary categorical variable \texttt{Metastasis} as the
+additional covariate for our linear regression model. We fit the model
+with \texttt{AgeDiagnosis} and \texttt{Metastasis} as our covriates and
+estimate the parameters.
+
+\begin{verbatim}
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.8408 -3.1953 -0.4716  2.4082 12.9116 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   13.19498    2.06157   6.400 1.02e-09 ***
+AgeDiagnosis   0.89459    0.04535  19.728  < 2e-16 ***
+MetastasesYes  1.13560    0.64446   1.762   0.0795 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.609 on 207 degrees of freedom
+Multiple R-squared:   0.66, Adjusted R-squared:  0.6567 
+F-statistic: 200.9 on 2 and 207 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+We observe that, the p-value for the \texttt{AgeDiagnosis} is still
+close to zero like our previous regression model. The p-value for our
+additional covariate is 0.0795 which is significant at 10\% level. So,
+we can reject the null hypothesis at 10\% significance level and say
+that the metastases of the cancer has impact on the patient's age at the
+death. The estimated residual error is 4.609 which is slightly less than
+our previous model(4.632).
+
+The estimated intercept is 13.19 which is slightly less than the the
+previous model. The estimated slope is 0.9 for \texttt{AgeDiagnosis} and
+1.13 for \texttt{Metastases}. The estimates slope for
+\texttt{Metastases} is greater than 1 which indicates that, on average,
+patients with metastases have an estimated mean age at death
+approximately 1.13 years higher than those without metastases. In
+real-world cases, we'd expect patients with metastasized cancer to have
+lower age at death. But, patients diagnosed with a cancer could die
+before the cancer had metastasized or the cancer is easier to diagnose
+once it has metastasized so we get people with higher age at diagnosis
+and subsequently higher age at death.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/reg1-1} 
+
+}
+
+\caption{Fig 4- A regression model for Age at Death conditional on Age at Diagnosis and Metastases.}\label{fig:reg1}
+\end{figure}
+
+The linear regression plot shows a positive relationship and a good fit
+for our data.The R-squared value is 0.66 which is slightly better than
+our previous model(0.655). The histogram of residual errors roughly
+follows a normal distribution with mean at zero.
+
+From the plot, we see that there is not much difference between patients
+with metastasized cancer and patients with not metastasized cancer. All
+the data points are close to each other along the regression line. The
+estimated coefficient of the metastasized covariate is also 1.13 (close
+to 1), so for patients with same age at diagnosis and different
+metastasis cancer state their age at death will only vary by an year.
+
+Overall, we see a slight improvement in our new model which included an
+additional covariate alongwith \texttt{AgeDiagnosis}.
+
+We know that, the patients are taking treatment in 12 different
+hospitals. To estimate the effect or the non-effect of hospitals on
+patient age at death we fit a random intercept model where we consider
+\texttt{AgeDiagnosis} to be the fixed effect and cluster the patients by
+hospitals by using \texttt{SiteID} as the random effect. We estimate the
+parameters of this random intercept model using the \texttt{lmer()}
+function in R. To make things easier, we have encoded our
+\texttt{SiteID} variable to range from 1 to 12.
+
+\begin{verbatim}
+Linear mixed model fit by maximum likelihood  ['lmerMod']
+Formula: AgeDeath ~ AgeDiagnosis + (1 | SiteID1)
+   Data: CWsample
+
+     AIC      BIC   logLik deviance df.resid 
+  1238.6   1251.9   -615.3   1230.6      206 
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-1.94751 -0.79853 -0.07794  0.55510  2.99798 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ SiteID1  (Intercept)  2.174   1.475   
+ Residual             19.353   4.399   
+Number of obs: 210, groups:  SiteID1, 12
+
+Fixed effects:
+             Estimate Std. Error t value
+(Intercept)  14.06641    2.02125   6.959
+AgeDiagnosis  0.89045    0.04355  20.446
+
+Correlation of Fixed Effects:
+            (Intr)
+AgeDiagnoss -0.964
+\end{verbatim}
+
+\textbf{Fixed Effects:} The estimated intercept for the fixed part of
+our model i.e.~\texttt{AgeDiagnosis} is 14.07, so it indicates that on
+average there is a difference of about 14 years between age at death and
+age at diagnosis. The slope or the coefficient of \texttt{AgeDiagnosis}
+is 0.89, so on average for each one-unit increase in
+\texttt{AgeDiagnosis}, the predicted mean age at death increases by
+approximately a year. The t-value is 20.45 which is greater than zero
+and hence statistically significant. So, \texttt{AgeDiagnosis} is a
+strong predictor of \texttt{AgeDeath}.
+
+\textbf{Random Effects:} The estimated variance between intercepts is
+2.17 which isn't very high. It indicates that, the random intercepts are
+close to each other and don't vary much. The estimated residual variance
+is 19.35 indicating the variability in age at death within the sites.
+The higher value of residual variance suggests that there is more
+unexplained variability in age at death within the sites, which could be
+due to randomness or external factors.
+
+\textbf{Correlation of Fixed Effects:} The estimated correlation value
+is -0.964, which indicates a strong negative correlation between the
+intercept and \texttt{AgeDiagnosis}. This suggests that as the age at
+diagnosis increases, the intercept tends to decrease, and vice versa.
+
+We now calculate the ``Intraclass Correlation Coefficient'' (ICC) for
+our model.
+
+\begin{verbatim}
+ICC <- between_group_variance / (between_group_variance + residual_variance)
+\end{verbatim}
+
+The estimated ICC value is 0.1. It indicates that approximately 10\% of
+the total variance in the age at death can be explained by the
+differences between the groups or clusters in the data. A value of 0.1
+suggests that there is still considerable variability in
+\texttt{AgeDeath} not explained by clustering of sites.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/reg2-1} 
+
+}
+
+\caption{Fig 5- A radom intercept model for Age at Death conditional on Age at Diagnosis and clustered by sites.}\label{fig:reg2}
+\end{figure}
+
+We observe that, the intercepts are close to each other as expected from
+the estimate of intercept variance. It is difficult to observe any other
+significant features from the plot because the random intercepts and the
+data points are all close to each other.
+
+The random intercept model makes the assumption that the residual errors
+and the random intercepts are normally distributed.It also makes the
+assumption of ``Homoscedasticity'' which says that the variability of
+the residuals is assumed to be constant across all levels. It also
+assumes a linear relationship between the dependent and independent
+variables. We plot the QQ Plots of residuals and random intercepts to
+test this assumption.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re3-1} 
+
+}
+
+\caption{Fig 6- QQ Plots to test the normality assumptions of the random intercept model.}\label{fig:re3}
+\end{figure}
+
+We observe that, the qq plot of residuals curves away from the normal
+line on the either ends of the graph. The qq plot of random intercepts
+are very close to the normal line but don't fall on it. So, the
+residuals and random intercepts violate the assumption of normality.
+But, for practical purposes we assume the normality of these two as they
+closely mimic a normal distribution.
+
+To test for homoscedasticity we plot the residuals against the fitted
+values.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re4-1} 
+
+}
+
+\caption{Fig 6- Test for Homoscedasticity.}\label{fig:re4}
+\end{figure}
+
+We observe that, the spread of the data points is relatively constant
+across different levels of the fitted values. So, our model doesn't
+violate the homoscedasticity assumption.
+
+One potential limitation of our model is the assumption of independence
+of observations within the sites, which may not always be the case in
+practice. There could be correlations present among the individuals
+within the same site.
+
+We now fit a random intercept model with an additional covariate
+\texttt{Metastases} alongwith \texttt{AgeDiagnosis} and estimate its
+parameters.
+
+\begin{verbatim}
+Linear mixed model fit by maximum likelihood  ['lmerMod']
+Formula: AgeDeath ~ AgeDiagnosis + Metastases + (1 | SiteID1)
+   Data: CWsample
+
+     AIC      BIC   logLik deviance df.resid 
+  1237.3   1254.1   -613.7   1227.3      205 
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-1.95812 -0.72872 -0.05577  0.57161  2.96306 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ SiteID1  (Intercept)  2.194   1.481   
+ Residual             19.041   4.364   
+Number of obs: 210, groups:  SiteID1, 12
+
+Fixed effects:
+              Estimate Std. Error t value
+(Intercept)    13.7670     2.0132   6.838
+AgeDiagnosis    0.8829     0.0434  20.344
+MetastasesYes   1.1152     0.6185   1.803
+
+Correlation of Fixed Effects:
+            (Intr) AgDgns
+AgeDiagnoss -0.948       
+MetastassYs -0.084 -0.095
+\end{verbatim}
+
+\textbf{Correlation of Fixed Effects:} The estimated correlation value
+is -0.95, which indicates a strong negative correlation between the
+intercept and \texttt{AgeDiagnosis}. This suggests that as the age at
+diagnosis increases, the intercept tends to decrease, and vice versa.
+The estimated correlation between the intercept and \texttt{Metastases}
+is -0.084 and the correlation between \texttt{AgeDiagnosis} and
+\texttt{Metastases} is -0.095. These are small negative values very
+close to zero which indicates that there is no significant correlation
+present between the intercept and \texttt{Metastases}, and
+\texttt{AgeDiagnosis} and \texttt{Metastases}.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re575-1} 
+
+}
+
+\caption{Fig 7- Random Intercept Model with additional covariate.}\label{fig:re575}
+\end{figure}
+
+We observe that using the estimated values and the plots, this affect of
+adding an additional covariate doesn't vary much sites.
+
+We plot the QQ Plots of residuals and random intercepts to test this
+assumption.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re9-1} 
+
+}
+
+\caption{Fig 8- QQ Plots to test the normality assumptions of the random intercept model.}\label{fig:re9}
+\end{figure}
+
+We observe that, the qq plot of residuals curves away from the normal
+line on the either ends of the graph. The qq plot of random intercepts
+are very close to the normal line but don't fall on it. So, the
+residuals and random intercepts violate the assumption of normality.
+
+To test for homoscedasticity we plot the residuals against the fitted
+values.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re44-1} 
+
+}
+
+\caption{Fig 9- Test for Homoscedasticity.}\label{fig:re44}
+\end{figure}
+
+We observe that, the spread of the data points is relatively constant
+across different levels of the fitted values. So, our model doesn't
+violate the homoscedasticity assumption.
+
+To test whether this random intercept model with addition covariate is
+preferable than the single level linear regression model with additional
+covariate, we use the Chi-bar test. We obtain the chi-squared value of
+7.3842 using \texttt{anova} in R and use this to calculate the p-value
+using the following formula in R.
+
+\begin{verbatim}
+p =  0.5 * (1 - pchisq(7.3842, df = 1))
+\end{verbatim}
+
+The p-value is 0.0033 which is significant at 0.1\% level. We can reject
+the null hypotheses at the 0.1\% significance level, in favour of the
+hypothesis that the Random Intercept Model is correct or more
+preferable.
+
+\hypertarget{conclusion}{%
+\subsubsection{Conclusion}\label{conclusion}}
+
+We can conclude the age at diagnosis has a positive impact on the age at
+death. The metastatic state of cancer also has a positive effect on the
+age at the death. Using these two covariates in the linear regression
+model improve the performance of the task. The hospital at which the
+patient is taking the treatment doesn't affect the age at death at a
+significant level. The cluster by site and using the two covariates in
+the random intercept model is the preferable choice for this task. This
+analysis didn't produce any real life impact as was expected.
+
+\hypertarget{designing-a-trial}{%
+\subsection{Designing a Trial}\label{designing-a-trial}}
+
+\hypertarget{trial-design}{%
+\subsubsection{Trial Design}\label{trial-design}}
+
+We propose trial that is a randomized controlled trial (RCT), to
+evaluate the effectiveness of interventions. The randomized allocation
+of participants to either the intervention or control group helps
+minimize selection bias and ensures comparability between groups.
+
+\textbf{Endpoint:} The primary endpoint of the trial is the age at death
+of cancer patients. This will be measured as a continuous variable,
+aiming to detect whether the intervention increases the expected age at
+death by two and a half years or more.
+
+\textbf{Parameters:} We will estimate the parameters required for the
+sample size using our dataset. These parameters include the mean age at
+death and its standard deviation in the control group, as well as the
+expected increase in age at death due to the intervention.
+
+The underlying model for analysis is a linear regression model, where
+the age at death is the dependent variable and the intervention group (0
+for control, 1 for intervention) is the independent variable. This model
+assumes that the relationship between the intervention and age at death
+is linear, which might not always be the case. This model will assess
+whether there is a statistically significant difference in the age at
+death between the intervention and control groups.
+
+\hypertarget{sample-size-requirements}{%
+\subsubsection{Sample Size
+Requirements}\label{sample-size-requirements}}
+
+To calculate the sample size, we need to specify the type I error rate
+(α) and the type II error rate (β). For this analysis, we use the
+industry standard values of α = 0.025 (one-sided) and β = 0.2. Using
+these standard error rates, we calculate the sample size required to
+detect an effect size of two and a half years or more in the age at
+death between the intervention and control groups. We do these
+calculations in R.
+
+\begin{verbatim}
+alpha <- 0.025  # Type I error rate
+beta <- 0.2     # Type II error rate
+delta <- 2.5   
+sigma <- sd(CWsample$AgeDeath)
+
+
+# Calculate sample size
+n <- 2*sigma^2 * (qnorm(1 - alpha) - qnorm(beta))^2 / delta^2
+\end{verbatim}
+
+The calculated sample size comes out to be 156 patients per arm.
+
+These sample size calculations assumes that the outcome variable follows
+a normal distribution, the outcome variable doesn't have high
+variability. As high variable outcome will require a very large sample
+size which is not always feasible. So it is assumes that the standard
+error of the estimated treatment effect is approximately same as the
+standard error of the dependent variable.
+
+\hypertarget{sensitivity-analysis}{%
+\subsubsection{Sensitivity Analysis}\label{sensitivity-analysis}}
+
+We now observe how the power of the trial varies according to the
+treatment effect and sample size.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re24-1} 
+
+}
+
+\caption{Fig 10- Power as a function of Treatment Effect.}\label{fig:re24}
+\end{figure}
+
+We observe that we can't attain the required level of power with a very
+small size for our treatment effect. We observe that for a large sample
+size the power of trial saturates at 1 very quickly which is not
+desirable and for a smaller sample size the power doesn't reach 1.
+
+\begin{figure}
+
+{\centering \includegraphics{assignment1_files/figure-latex/re242-1} 
+
+}
+
+\caption{Fig 11- Power as a function of Sample Size.}\label{fig:re242}
+\end{figure}
+
+\newpage
+
+\includegraphics[width=10.41667in,height=\textheight]{C:/Athang/MSc DSA/Mixed Models with Medical Applications/aca integrity final f.pdf}
+
+\end{document}
